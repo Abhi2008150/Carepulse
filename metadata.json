@@ -1,0 +1,9 @@
+{
+  "name": "CarePulse Hospital Portal",
+  "description": "A comprehensive hospital management system featuring patient and doctor portals, appointment booking, health tracking, and real-time communication.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
