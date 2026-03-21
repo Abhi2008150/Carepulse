@@ -1,9 +1,26 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAIInstance = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("GEMINI_API_KEY is not defined. AI features will be disabled.");
+      return null;
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 export const getFastAIResponse = async (prompt: string, context?: string) => {
   try {
+    const ai = getAIInstance();
+    if (!ai) {
+      return "I'm sorry, the AI assistant is currently unavailable as the API key is not configured. Please contact support.";
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: context ? `${context}\n\nUser Question: ${prompt}` : prompt,

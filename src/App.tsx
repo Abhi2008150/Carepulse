@@ -540,7 +540,20 @@ export default function App() {
   const [notes, setNotes] = useState<SOAPNote[]>(INITIAL_NOTES);
   const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
   const [appointments, setAppointments] = useState<Appointment[]>(APPOINTMENTS);
-  const [fastingRecords, setFastingRecords] = useState<FastingRecord[]>(INITIAL_FASTING_RECORDS);
+  const [fastingRecords, setFastingRecords] = useState<FastingRecord[]>(INITIAL_PATIENTS.length > 0 ? INITIAL_FASTING_RECORDS : []);
+
+  const [checklist, setChecklist] = useState([
+    { id: 1, task: "Drink 2L Water", done: true, details: "Staying hydrated is crucial for maintaining energy levels, supporting kidney function, and keeping your skin healthy. Aim for at least 8 glasses a day." },
+    { id: 2, task: "15 min Morning Walk", done: true, details: "A brisk morning walk boosts your metabolism, improves cardiovascular health, and enhances your mood for the rest of the day." },
+    { id: 3, task: "Check Blood Pressure", done: false, details: "Regular monitoring helps track your heart health and ensures your medication is working effectively. Best taken at the same time each day." },
+    { id: 4, task: "Evening Meditation", done: false, details: "Meditation reduces stress, improves sleep quality, and helps maintain emotional balance. Even 5-10 minutes can make a difference." },
+  ]);
+
+  const toggleChecklistItem = (id: number) => {
+    setChecklist(prev => prev.map(item => 
+      item.id === id ? { ...item, done: !item.done } : item
+    ));
+  };
 
   useEffect(() => {
     // Mock user for UI
@@ -936,7 +949,40 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === 'dashboard' && (role === 'patient' ? <PatientDashboard onAction={showNotification} onOpenModal={openModal} onCloseModal={() => setModal(null)} onNavigate={setActiveTab} appointments={appointments} onAddAppointment={addAppointment} onCancelAppointment={cancelAppointment} onRescheduleAppointment={rescheduleAppointment} readings={readings} onUpdateReadings={setReadings} fastingRecords={fastingRecords} onStartFast={startFast} onStopFast={stopFast} user={user} /> : <DoctorDashboard onAction={showNotification} onOpenModal={openModal} onNavigate={setActiveTab} onCloseModal={() => setModal(null)} patients={patients} notes={notes} appointments={appointments} onAddPatient={addPatient} onDeletePatient={deletePatient} onDeleteNote={deleteNote} onCancelAppointment={cancelAppointment} />)}
+              {activeTab === 'dashboard' && (role === 'patient' ? (
+                <PatientDashboard 
+                  onAction={showNotification} 
+                  onOpenModal={openModal} 
+                  onCloseModal={() => setModal(null)} 
+                  onNavigate={setActiveTab} 
+                  appointments={appointments} 
+                  onAddAppointment={addAppointment} 
+                  onCancelAppointment={cancelAppointment} 
+                  onRescheduleAppointment={rescheduleAppointment} 
+                  readings={readings} 
+                  onUpdateReadings={setReadings} 
+                  fastingRecords={fastingRecords} 
+                  onStartFast={startFast} 
+                  onStopFast={stopFast} 
+                  user={user}
+                  checklist={checklist}
+                  onToggleChecklistItem={toggleChecklistItem}
+                />
+              ) : (
+                <DoctorDashboard 
+                  onAction={showNotification} 
+                  onOpenModal={openModal} 
+                  onNavigate={setActiveTab} 
+                  onCloseModal={() => setModal(null)} 
+                  patients={patients} 
+                  notes={notes} 
+                  appointments={appointments} 
+                  onAddPatient={addPatient} 
+                  onDeletePatient={deletePatient} 
+                  onDeleteNote={deleteNote} 
+                  onCancelAppointment={cancelAppointment} 
+                />
+              ))}
               {activeTab === 'appointments' && <AppointmentsPage onAction={showNotification} onOpenModal={openModal} onCloseModal={() => setModal(null)} appointments={appointments} onAddAppointment={addAppointment} onCancelAppointment={cancelAppointment} />}
               {activeTab === 'reports' && <ReportsPage onAction={showNotification} onOpenModal={openModal} />}
               {activeTab === 'medicines' && <MedicinesPage onAction={showNotification} onOpenModal={openModal} />}
@@ -1160,7 +1206,9 @@ const PatientDashboard = ({
   fastingRecords,
   onStartFast,
   onStopFast,
-  user
+  user,
+  checklist,
+  onToggleChecklistItem
 }: { 
   onAction: (msg: string, type?: any) => void, 
   onOpenModal: (title: string, content: React.ReactNode) => void, 
@@ -1175,23 +1223,12 @@ const PatientDashboard = ({
   fastingRecords: FastingRecord[],
   onStartFast: (type: FastingRecord['type']) => void,
   onStopFast: (id: string) => void,
-  user: any
+  user: any,
+  checklist: any[],
+  onToggleChecklistItem: (id: number) => void
 }) => {
   const patientAppointments = appointments.filter(a => a.patientId === MOCK_PATIENT.id && a.status === 'scheduled');
   const nextAppointment = patientAppointments[0];
-
-  const [checklist, setChecklist] = useState([
-    { id: 1, task: "Drink 2L Water", done: true, details: "Staying hydrated is crucial for maintaining energy levels, supporting kidney function, and keeping your skin healthy. Aim for at least 8 glasses a day." },
-    { id: 2, task: "15 min Morning Walk", done: true, details: "A brisk morning walk boosts your metabolism, improves cardiovascular health, and enhances your mood for the rest of the day." },
-    { id: 3, task: "Check Blood Pressure", done: false, details: "Regular monitoring helps track your heart health and ensures your medication is working effectively. Best taken at the same time each day." },
-    { id: 4, task: "Evening Meditation", done: false, details: "Meditation reduces stress, improves sleep quality, and helps maintain emotional balance. Even 5-10 minutes can make a difference." },
-  ]);
-
-  const toggleChecklistItem = (id: number) => {
-    setChecklist(prev => prev.map(item => 
-      item.id === id ? { ...item, done: !item.done } : item
-    ));
-  };
 
   const completedCount = checklist.filter(item => item.done).length;
 
@@ -1497,7 +1534,7 @@ const PatientDashboard = ({
                   )}
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleChecklistItem(item.id);
+                    onToggleChecklistItem(item.id);
                   }}
                 >
                   <Check size={12} strokeWidth={3} />
