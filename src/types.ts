@@ -60,7 +60,8 @@ export interface HealthMetric {
   bp_systolic: number;
   bp_diastolic: number;
   heartRate: number;
-  sugar: number;
+  glucose: number;
+  spo2: number;
 }
 
 export interface ChatMessage {
@@ -83,4 +84,14 @@ export interface SOAPNote {
   assessment: string;
   plan: string;
   status: 'draft' | 'finalized';
+}
+
+export interface FastingRecord {
+  id: string;
+  patientId: string;
+  startTime: string;
+  endTime?: string;
+  type: 'water-only' | 'juice-only' | 'intermittent' | 'pre-surgery';
+  status: 'active' | 'completed';
+  notes?: string;
 }
